@@ -2,9 +2,11 @@ package mongo
 
 import (
 	"context"
+	"crypto/tls"
+	"errors"
+	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -12,41 +14,47 @@ import (
 
 var m *mongo.Client
 
-// M - Ping()
+
+// M - return m
 func M() (*mongo.Client, error) {
+	if m == nil {
+		return nil, errors.New("no connection")
+	}
+
+    // test connection is OK
 	if err := m.Ping(context.TODO(), readpref.Primary()); err != nil {
 		return nil, err
 	}
+
 	return m, nil
 }
 
-// Close - disconnect DB connection
+// Close -
 func Close() {
 	m.Disconnect(context.Background())
 }
 
-// Con -
+// Con - 
 func Con(c DBConfig) error {
 	if err := con(c); err != nil {
 		return err
 	}
 
+    // test connection is OK
 	if err := m.Ping(context.TODO(), readpref.Primary()); err != nil {
-		spew.Dump(err.Error())
+		return err
 	}
 
 	return nil
 }
 
-// con - connect MongoDB
 func con(c DBConfig) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// connect options set
 	opts := options.Client()
-
-	opts.ApplyURI(uri(c))
+	opts.ApplyURI(uri(c)).SetAppName(c.AppName)
 
 	// set db auth
 	if c.User != "" && c.Password != "" {
@@ -57,15 +65,28 @@ func con(c DBConfig) error {
 		})
 	}
 
-	// number of connections allowed in the driver's connection pool to each server
+	//  連線到mongo叢集
+	if c.ReplicaSet != "" {
+		opts.ReplicaSet = &c.ReplicaSet
+	}
+
+	// set TLS/SSL (做成加密連線)
+	if c.SSL {
+		opts.SetTLSConfig(&tls.Config{
+			InsecureSkipVerify: true,
+		})
+	}
+
+	// 設定連接池個數
 	if c.PoolSize > 0 {
 		opts.SetMaxPoolSize(c.PoolSize)
 	} else {
 		opts.SetMaxPoolSize(10)
 	}
 
-	opts.SetMinPoolSize(5)
-	opts.SetMaxConnIdleTime(time.Second * 300) // maximum amount of time that a connection will remain idle
+	opts.SetMinPoolSize(5)                     // 最少
+	opts.SetMaxConnIdleTime(time.Second * 300) // 最久連接時間
+	opts.SetHeartbeatInterval(10 * time.Second)
 
 	// Connect to MongoDB
 	client, err := mongo.NewClient(opts)
@@ -89,12 +110,17 @@ func con(c DBConfig) error {
 // mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[database][?options]]
 func uri(c DBConfig) string {
 	s := "mongodb://"
+	host := strings.Split(c.Host, ",")
 
-	if c.User != "" && c.Password != "" {
-		s += c.User + ":" + c.Password + "@"
+	for i, v := range host {
+		if c.User != "" && c.Password != "" {
+			s += c.User + ":" + c.Password + "@"
+		}
+		s += v
+		if i != len(host)-1 {
+			s += ","
+		}
 	}
-
-	s += c.Host
 
 	return s
 }
