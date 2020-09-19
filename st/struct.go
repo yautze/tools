@@ -5,20 +5,20 @@ import (
 	gs "google.golang.org/grpc/status"
 )
 
-// err -
+//
 type err struct {
 	gst *gs.Status
 	st  *body
 }
 
-// body -
+//
 type body struct {
 	Code int32  `json:"code" yaml:"code" `
 	Msg  string `json:"msg" yaml:"msg"`
 }
 
-// parseMsg -
 func (e *err) parseMsg() error {
+
 	e.st = &body{}
 
 	err := json.Unmarshal([]byte(e.gst.Message()), e.st)
@@ -26,21 +26,35 @@ func (e *err) parseMsg() error {
 	return err
 }
 
+// String -
+func (e *err) String() string {
+	return e.gst.Message()
+}
+
+func (e *err) Error() string {
+	return e.gst.Err().Error()
+}
+
 func (e *err) Err() error {
 	return e.gst.Err()
 }
 
-// get err.st.Code
 func (e *err) GetCode() int32 {
 	return e.st.Code
 }
 
-// get err.st.Msg
 func (e *err) GetMsg() string {
 	return e.st.Msg
 }
-
-// get err.gst.Code
 func (e *err) GetGRPCCode() codes.Code {
 	return e.gst.Code()
+}
+
+func (e *err) Equal(er error) bool {
+	if x, ok := er.(*err); ok {
+		if x.GetCode() == e.GetCode() {
+			return true
+		}
+	}
+	return false
 }

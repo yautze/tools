@@ -37,3 +37,8 @@ func (hook *fieldHook) Fire(entry *logrus.Entry) error {
 func (hook *fieldHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
+
+type slackHook struct {
+	Webhook string
+	Channel string
+}

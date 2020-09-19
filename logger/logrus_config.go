@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NewLogrus -
+//NewLogrus -
 func NewLogrus() {
 	l = logrus.New()
 	l.SetOutput(os.Stdout)
@@ -17,6 +17,7 @@ func NewLogrus() {
 	l.SetFormatter(&logrus.JSONFormatter{
 		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 			filename := path.Base(f.File)
+			//return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
 			return f.Function + "()", filename + ":" + strconv.Itoa(f.Line)
 		},
 	})
@@ -50,4 +51,9 @@ func SetLevel(level logrus.Level) {
 	case WarnLevel:
 		l.SetLevel(logrus.WarnLevel)
 	}
+}
+
+// SetSlackHook -
+func SetSlackHook(webhook string, level logrus.Level) {
+
 }

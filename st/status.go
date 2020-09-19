@@ -1,13 +1,21 @@
 package st
 
 import (
-	"fmt"
-
+	"github.com/axolotlteam/thunder/logger"
 	"google.golang.org/grpc/codes"
 	gs "google.golang.org/grpc/status"
 )
 
+// NewError -
 func NewError(code int32, msg string, gc codes.Code) error {
+	if _, ok := list[code]; ok {
+		logger.Panicf("code : %d is duplicate", code)
+	}
+
+	if gc == codes.OK {
+		return nil
+	}
+
 	x := &body{
 		Code: code,
 		Msg:  msg,
@@ -21,12 +29,19 @@ func NewError(code int32, msg string, gc codes.Code) error {
 
 	err := s.Err()
 
+	list[code] = err
+
 	return err
+}
+
+// List -
+func List() map[int32]error {
+	return list
 }
 
 // ConvertError -
 func ConvertError(errs error) Errors {
-	// success
+
 	if errs == nil {
 		return &err{
 			gst: gs.New(OK, "success"),
@@ -47,13 +62,13 @@ func ConvertError(errs error) Errors {
 			temp.st.Msg = gt.Message()
 		}
 	} else {
-		fmt.Printf("convert error failed with errr : %s", errs.Error())
+		logger.Panicf("convert error failed with errr : %s", errs.Error())
 	}
 
 	return temp
 }
 
-// Equal -
+// Equal =
 func Equal(err, err2 error) bool {
 	return err.Error() == err2.Error()
 }

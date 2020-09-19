@@ -1,5 +1,4 @@
 package srv
-// grpc server
 
 import (
 	"log"
@@ -30,7 +29,6 @@ func newListener(opt *Options) net.Listener {
 		log.Panic(err)
 	}
 
-	// Port - int to string
 	opt.Port = strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
 
 	return listener

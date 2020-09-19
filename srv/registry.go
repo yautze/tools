@@ -1,7 +1,5 @@
 package srv
 
-// consul
-
 import (
 	"crypto/rand"
 	"encoding/hex"
