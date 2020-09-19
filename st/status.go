@@ -1,7 +1,7 @@
 package st
 
 import (
-	"github.com/axolotlteam/thunder/logger"
+	"github.com/yautze/tools/logger"
 	"google.golang.org/grpc/codes"
 	gs "google.golang.org/grpc/status"
 )

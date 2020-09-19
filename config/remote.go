@@ -3,8 +3,8 @@ package config
 import (
 	"bytes"
 
-	"github.com/axolotlteam/thunder/logger"
-	"github.com/axolotlteam/thunder/st"
+	"github.com/yautze/tools/logger"
+	"github.com/yautze/tools/st"
 	"github.com/hashicorp/consul/api"
 	"github.com/spf13/viper"
 )

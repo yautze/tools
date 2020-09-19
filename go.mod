@@ -12,4 +12,6 @@ require (
 	google.golang.org/grpc v1.29.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/gin-gonic/gin v1.6.3
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-redis/redis/v8 v8.1.3
 )
